@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Download Page</title>
+    <link rel="icon" href="icon.png" type="image/png" sizes="32x32">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Base */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :focus {
+            outline: none;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent-main-light);
+            outline-offset: 2px;
+        }
+
+        /* Color Variables */
+        :root {
+            --bg-dark: #0D0D0D;
+            --bg-card: #121212;
+            --text-light: #E0E0E0;
+            --text-muted: #A8A8A8;
+            --accent-main: #FF4D6A; /* Warna merah */
+            --accent-main-light: #FF7B90;
+            --border-color: #2a2a2a;
+            --shadow-color-light: rgba(0, 0, 0, 0.2);
+            --shadow-color-dark: rgba(0, 0, 0, 0.35);
+
+            /* Warna khusus untuk tombol download */
+            --download-btn-bg: #222222;
+            --download-btn-border: #444444;
+            --download-btn-text: #e0e0e0;
+            --download-btn-hover-bg: #333333;
+
+            /* Warna sukses */
+            --success-color: #4CAF50; /* Hijau */
+            --success-color-light: #45a049;
+            --success-glow: rgba(76, 175, 80, 0.4);
+            --success-glow-hover: rgba(76, 175, 80, 0.6);
+            --success-glow-active: rgba(76, 175, 80, 0.5); /* Sedikit lebih redup saat ditekan */
+        }
+
+        /* Main Body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column; /* Mengubah flex-direction menjadi column */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden; /* Mencegah scroll horizontal */
+            background: var(--bg-dark);
+
+            opacity: 0;
+            filter: blur(6px);
+            transform: translateY(20px);
+            transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 1s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body.is-loaded {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0);
+        }
+
+        /* Download Column */
+        .download-column {
+            background-color: var(--bg-card);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+            box-shadow: 0 4px 15px var(--shadow-color-dark);
+            position: relative;
+            z-index: 1;
+
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fade-in-slide-up 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            animation-delay: 0.5s;
+
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .download-column:hover {
+            transform: translateY(-6px);
+            background-color: #1a1a1a;
+            border-color: #383838;
+            box-shadow: 0 8px 20px var(--shadow-color-dark);
+        }
+
+        @keyframes fade-in-slide-up {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .download-column::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-main), var(--accent-main-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease-out;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .download-column:hover::before {
+            transform: scaleX(1);
+        }
+
+        /* Title */
+        .download-column h1 {
+            color: var(--text-light);
+            font-size: 1.4em;
+            margin-bottom: 18px;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: color 0.5s ease;
+        }
+
+        .download-column h1 .fas {
+            font-size: 0.9em;
+            color: var(--accent-main);
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .download-column h1 .fas.fa-check-circle {
+            color: var(--success-color);
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        /* Info Text */
+        .download-column p {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            transition: opacity 0.5s ease, height 0.5s ease, margin-bottom 0.5s ease;
+        }
+
+        /* Download Button */
+        .download-btn {
+            background-color: var(--download-btn-bg);
+            color: var(--download-btn-text);
+            padding: 10px 18px;
+            border: 1px solid var(--download-btn-border);
+            border-radius: 7px;
+            cursor: not-allowed;
+            font-size: 0.95em;
+            font-weight: 600;
+            margin-top: 25px;
+            transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.4px;
+            box-shadow: none;
+            outline: none;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 60%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: skewX(-20deg);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .download-btn.ready:hover::before {
+            left: 120%;
+        }
+
+        .download-btn.ready {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+            cursor: pointer;
+            opacity: 1;
+            animation: bounceIn 0.7s cubic-bezier(0.17, 0.88, 0.32, 1.27);
+            box-shadow: 0 0 15px var(--success-glow);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.03);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .download-btn:hover:not(.ready) {
+            background-color: var(--download-btn-hover-bg);
+            transform: translateY(-1px);
+            border-color: #555555;
+        }
+
+        .download-btn.ready:hover {
+            background-color: var(--success-color-light);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--success-glow-hover);
+        }
+
+        .download-btn.ready:active {
+            background-color: var(--success-color); /* Tetap hijau saat ditekan */
+            border-color: var(--success-color); /* Border tetap hijau */
+            color: white; /* Teks tetap putih */
+            transform: translateY(-1px) scale(0.99); /* Sedikit efek "push" ke bawah dan skala */
+            box-shadow: 0 4px 15px var(--success-glow-active); /* Glow sedikit meredup/berubah */
+        }
+
+        .download-btn:not(.ready):active {
+            background-color: var(--accent-main); /* Kembali ke default merah */
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Scanner icon animation */
+        .fa-spinner {
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .download-column {
+                padding: 15px;
+                max-width: 95%;
+            }
+            .download-column h1 {
+                font-size: 1.2em;
+                gap: 8px;
+            }
+            .download-column h1 .fas {
+                font-size: 0.8em;
+            }
+            .download-column p {
+                font-size: 0.85em;
+                margin-bottom: 15px;
+            }
+            .download-btn {
+                padding: 8px 15px;
+                font-size: 0.9em;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body class="is-loading">
+
+    <div class="download-column">
+        <h1 id="mainTitle">
+            <i class="fas fa-search-plus" id="scannerIcon"></i> Please Wait
+        </h1>
+        <p id="infoText">Your file is being verified, please wait a moment.</p>
+        <button id="downloadButton" class="download-btn" disabled>
+            Download (5)
+        </button>
+    </div>
+
+    <script>
+        const downloadButton = document.getElementById('downloadButton');
+        const mainTitle = document.getElementById('mainTitle');
+        const infoText = document.getElementById('infoText');
+        const scannerIcon = document.getElementById('scannerIcon');
+        const body = document.body;
+
+        let countdown = 5;
+        // Ganti URL ini dengan URL unduhan file Anda yang sebenarnya
+        let downloadLink = "https://www.mediafire.com/file/vr98vb61wmjzb89/VexiroRevolution-v3.8.0.apk/file"; // Link yang sudah diubah
+
+        document.addEventListener('DOMContentLoaded', () => {
+            body.classList.remove('is-loading');
+            body.classList.add('is-loaded');
+
+            // Mulai hitungan mundur setelah 1 detik
+            setTimeout(startCountdown, 1000);
+        });
+
+        function startCountdown() {
+            // Mengganti ikon dan memulai animasi spinner
+            scannerIcon.classList.add('fa-spinner', 'fa-spin');
+            scannerIcon.classList.remove('fa-search-plus');
+
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                downloadButton.textContent = `Download (${countdown})`;
+
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval); // Hentikan interval
+
+                    // Mengubah teks dan status tombol menjadi "Ready"
+                    downloadButton.textContent = 'File Ready';
+                    downloadButton.classList.add('ready');
+                    downloadButton.removeAttribute('disabled');
+                    downloadButton.style.cursor = 'pointer';
+
+                    // Mengubah judul utama
+                    mainTitle.innerHTML = '<i class="fas fa-check-circle"></i> File Verified Successfully!';
+
+                    // Menghilangkan teks info dengan transisi halus
+                    infoText.style.opacity = '0';
+                    infoText.style.height = infoText.scrollHeight + 'px'; // Atur tinggi awal untuk transisi
+                    setTimeout(() => {
+                        infoText.style.height = '0'; // Kecilkan tinggi ke 0
+                        infoText.style.marginBottom = '0'; // Hilangkan margin bawah
+                        infoText.style.overflow = 'hidden'; // Sembunyikan overflow
+                    }, 50); // Beri sedikit delay agar transisi tinggi bisa dimulai
+
+                    // Menambahkan event listener untuk tombol download
+                    downloadButton.addEventListener('click', function(event) {
+                        event.preventDefault(); // Mencegah perilaku default tombol
+                        const originalText = "File Ready"; // Simpan teks asli
+                        // Pastikan downloadLink yang digunakan di sini adalah yang sudah ditentukan di atas
+                        const currentDownloadLink = downloadLink;
+
+                        // Mengubah teks tombol dan menonaktifkan interaksi sementara
+                        this.textContent = 'Downloading...';
+                        this.style.pointerEvents = 'none'; // Mencegah klik berulang
+
+                        setTimeout(() => {
+                            this.textContent = originalText; // Kembalikan teks tombol
+                            this.style.pointerEvents = 'auto'; // Aktifkan kembali interaksi
+
+                            // Membuat elemen link sementara untuk memulai unduhan
+                            const a = document.createElement('a');
+                            a.href = currentDownloadLink;
+                            a.download = true; // Penting untuk mengunduh, bukan membuka di tab baru
+                            document.body.appendChild(a);
+                            a.click(); // Klik link secara programatis
+                            document.body.removeChild(a); // Hapus link setelah digunakan
+
+                        }, 800); // Durasi simulasi unduhan
+                    });
+                }
+            }, 1000); // Interval setiap 1 detik
+        }
+    </script>
+
+</body>
+</html>
